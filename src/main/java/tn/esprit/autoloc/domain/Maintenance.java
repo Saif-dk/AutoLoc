@@ -1,4 +1,4 @@
-package tn.esprit.autoloc.Entity;
+package tn.esprit.autoloc.domain;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,21 +9,18 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "paiement")
+@Table(name = "maintenance")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Paiement {
+public class Maintenance {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idPaiement;
+    private Long idMaintenance;
 
-    private double montant;
-
-    private LocalDate datePaiement;
-
-    @Enumerated(EnumType.STRING)
-    private ModePaiement mode;
+    private LocalDate dateDebut;
+    private LocalDate dateFin;
+    private String description;
 }
