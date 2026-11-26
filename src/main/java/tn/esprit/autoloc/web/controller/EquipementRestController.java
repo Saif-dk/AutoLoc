@@ -1,9 +1,12 @@
 package tn.esprit.autoloc.web.controller;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import tn.esprit.autoloc.domain.Equipement;
 import tn.esprit.autoloc.service.IEquipementService;
+import tn.esprit.autoloc.web.dto.EquipementDTO;
+import tn.esprit.autoloc.web.mapper.EquipementMapper;
 
 import java.util.List;
 
@@ -13,23 +16,26 @@ import java.util.List;
 public class EquipementRestController {
 
     IEquipementService equipementService;
+    EquipementMapper equipementMapper;
 
     // http://localhost:8080/equipement/retrieve-all-equipements
     @GetMapping("/retrieve-all-equipements")
-    public List<Equipement> getEquipements() {
-        return equipementService.retrieveAllEquipements();
+    public List<EquipementDTO> getEquipements() {
+        return equipementService.retrieveAllEquipements().stream()
+                .map(equipementMapper::toDto)
+                .toList();
     }
 
     // http://localhost:8080/equipement/retrieve-equipement/1
     @GetMapping("/retrieve-equipement/{equipement-id}")
-    public Equipement retrieveEquipement(@PathVariable("equipement-id") Long equipementId) {
-        return equipementService.retrieveEquipement(equipementId);
+    public EquipementDTO retrieveEquipement(@PathVariable("equipement-id") Long equipementId) {
+        return equipementMapper.toDto(equipementService.retrieveEquipement(equipementId));
     }
 
     // http://localhost:8080/equipement/add-equipement
     @PostMapping("/add-equipement")
-    public Equipement addEquipement(@RequestBody Equipement equipement) {
-        return equipementService.addEquipement(equipement);
+    public EquipementDTO addEquipement(@Valid @RequestBody EquipementDTO dto) {
+        return equipementMapper.toDto(equipementService.addEquipement(equipementMapper.toEntity(dto)));
     }
 
     // http://localhost:8080/equipement/remove-equipement/1
@@ -40,7 +46,13 @@ public class EquipementRestController {
 
     // http://localhost:8080/equipement/modify-equipement
     @PutMapping("/modify-equipement")
-    public Equipement modifyEquipement(@RequestBody Equipement equipement) {
-        return equipementService.modifyEquipement(equipement);
+    public EquipementDTO modifyEquipement(@Valid @RequestBody EquipementDTO dto) {
+        if (dto.idEquipement() == null) {
+            throw new IllegalArgumentException("idEquipement est obligatoire pour la modification");
+        }
+        equipementService.retrieveEquipement(dto.idEquipement());          // 404 si l'élément n'existe pas
+        Equipement entity = equipementMapper.toEntity(dto);
+        entity.setIdEquipement(dto.idEquipement());
+        return equipementMapper.toDto(equipementService.modifyEquipement(entity));
     }
 }
